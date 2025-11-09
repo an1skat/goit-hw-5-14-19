@@ -1,17 +1,15 @@
-import React, { Component } from 'react';
+import React from 'react';
 
-class ImageGalleryItem extends Component {
-  handleClick = () => {
-    this.props.onClick(this.props.large);
+const ImageGalleryItem = ({ small, large, onClick }) => {
+  const handleClick = () => {
+    onClick(large);
   };
 
-  render() {
-    return (
-      <li className="gallery-item" onClick={this.handleClick}>
-        <img src={this.props.small} alt="" />
-      </li>
-    );
-  }
-}
+  return (
+    <li className="gallery-item" onClick={handleClick}>
+      <img src={small} alt="" />
+    </li>
+  );
+};
 
 export default ImageGalleryItem;

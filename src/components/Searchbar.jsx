@@ -1,37 +1,37 @@
-import React, { Component } from 'react';
+import React, { useState, useRef } from 'react';
 
-class Searchbar extends Component {
-  state = { input: '' };
-  debounceTimeout = null;
+const Searchbar = ({ onSubmit }) => {
+  const [input, setInput] = useState('');
+  const debounceTimeout = useRef(null);
 
-  handleChange = (e) => {
+  const handleChange = (e) => {
     const value = e.target.value;
-    this.setState({ input: value });
+    setInput(value);
 
-    if (this.debounceTimeout) clearTimeout(this.debounceTimeout);
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
 
-    this.debounceTimeout = setTimeout(() => {
-      this.props.onSubmit(value);
+    debounceTimeout.current = setTimeout(() => {
+      onSubmit(value);
     }, 500);
   };
 
-  render() {
-    return (
-      <header className="searchbar">
-        <form className="form" onSubmit={(e) => e.preventDefault()}>
-          <input
-            className="input"
-            type="text"
-            value={this.state.input}
-            onChange={this.handleChange}
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-          />
-        </form>
-      </header>
-    );
-  }
-}
+  return (
+    <header className="searchbar">
+      <form className="form" onSubmit={(e) => e.preventDefault()}>
+        <input
+          className="input"
+          type="text"
+          value={input}
+          onChange={handleChange}
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+        />
+      </form>
+    </header>
+  );
+};
 
 export default Searchbar;

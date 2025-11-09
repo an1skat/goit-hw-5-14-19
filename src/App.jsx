@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Searchbar from './components/Searchbar';
 import ImageGallery from './components/ImageGallery';
 import Button from './components/Button';
@@ -9,72 +9,67 @@ import './App.css';
 
 const API_KEY = '50017256-801118a20f40788150c0b225f';
 
-class App extends Component {
-  state = {
-    query: '',
-    images: [],
-    page: 1,
-    loading: false,
-    showModal: false,
-    modalImage: null,
-  };
+const App = () => {
+  const [query, setQuery] = useState('');
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalImage, setModalImage] = useState(null);
 
-  componentDidMount() {
-    this.fetchImages();
-  }
-
-  handleSearchSubmit = (query) => {
-    this.setState({ query, images: [], page: 1 }, () => {
-      if (query.trim() !== '') this.fetchImages();
-    });
-  };
-
-  fetchImages = async () => {
-    const { query, page, images } = this.state;
-    this.setState({ loading: true });
+  const fetchImages = async (q, p) => {
+    setLoading(true);
     try {
       const response = await axios.get(
         `https://pixabay.com/api/?q=${encodeURIComponent(
-          query,
-        )}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`,
+          q,
+        )}&page=${p}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`,
       );
-      this.setState({ images: [...images, ...response.data.hits] });
+      setImages((prevImages) => [...prevImages, ...response.data.hits]);
     } catch (error) {
       console.error(error);
     } finally {
-      this.setState({ loading: false });
+      setLoading(false);
     }
   };
 
-  handleLoadMore = () => {
-    this.setState(
-      (prevState) => ({ page: prevState.page + 1 }),
-      this.fetchImages,
-    );
+  useEffect(() => {
+    if (query.trim() === '') return;
+    fetchImages(query, page);
+  }, [query, page]);
+
+  const handleSearchSubmit = (newQuery) => {
+    setQuery(newQuery);
+    setImages([]);
+    setPage(1);
   };
 
-  openModal = (largeImageURL) => {
-    this.setState({ showModal: true, modalImage: largeImageURL });
-  };
+  const handleLoadMore = useCallback(() => {
+    setPage((prevPage) => prevPage + 1);
+  }, []);
 
-  closeModal = () => {
-    this.setState({ showModal: false, modalImage: null });
-  };
+  const openModal = useCallback((largeImageURL) => {
+    setShowModal(true);
+    setModalImage(largeImageURL);
+  }, []);
 
-  render() {
-    const { images, loading, showModal, modalImage } = this.state;
-    return (
-      <div>
-        <Searchbar onSubmit={this.handleSearchSubmit} />
-        <ImageGallery images={images} onImageClick={this.openModal} />
-        {loading && <Loader />}
-        {images.length > 0 && !loading && (
-          <Button onClick={this.handleLoadMore} />
-        )}
-        {showModal && <Modal image={modalImage} onClose={this.closeModal} />}
-      </div>
-    );
-  }
-}
+  const closeModal = useCallback(() => {
+    setShowModal(false);
+    setModalImage(null);
+  }, []);
+
+  const imagesCount = useMemo(() => images.length, [images]);
+
+  return (
+    <div>
+      <Searchbar onSubmit={handleSearchSubmit} />
+      <p>Знайдено зображень: {imagesCount}</p>
+      <ImageGallery images={images} onImageClick={openModal} />
+      {loading && <Loader />}
+      {images.length > 0 && !loading && <Button onClick={handleLoadMore} />}
+      {showModal && <Modal image={modalImage} onClose={closeModal} />}
+    </div>
+  );
+};
 
 export default App;
