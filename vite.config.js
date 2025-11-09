@@ -4,5 +4,5 @@ import react from '@vitejs/plugin-react';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/goit-hw-5-14-18/',
+  base: '/goit-hw-5-14-19/',
 });
